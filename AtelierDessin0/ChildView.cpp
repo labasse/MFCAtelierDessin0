@@ -19,8 +19,19 @@ namespace
 
 // CChildView
 
-CChildView::CChildView()
+CChildView::CChildView() : m_selection(PS_DOT, 1, RGB(0, 0, 0))
 {
+	for (int i = 0; i < 100; ++i)
+	{
+		shape item;
+
+		item.type = rand() % 3;
+		item.white = 0 != (rand() % 2);
+		item.box = CRect(CPoint(RandSize(10, 800)), RandSize(100, 300));
+		item.textbg = (COLORREF)(rand() | 0x80'80'80) & 0xff'ff'ff;
+		item.text = _T("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum");
+		m_items.push_back(item);
+	}
 }
 
 CChildView::~CChildView()
@@ -31,6 +42,10 @@ CChildView::~CChildView()
 BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONUP()
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 
@@ -92,11 +107,9 @@ void CChildView::OnPaint()
 		dc.SelectStockObject(NULL_BRUSH); // Pas de remplissage
 
 		dc.SetROP2(R2_XORPEN);
-		for (int i = 0; i < 100; ++i)
+		for (auto item : m_items)
 		{
-			CRect rc = CRect(CPoint(RandSize(10, 800)), RandSize(100, 300));
-
-			if (rand() % 2)
+			if (item.white)
 			{
 				dc.SelectObject(GetSysColorBrush(COLOR_WINDOW));
 			}
@@ -104,20 +117,33 @@ void CChildView::OnPaint()
 			{
 				dc.SelectStockObject(LTGRAY_BRUSH);
 			}
-			switch (rand() % 3)
+			switch (item.type)
 			{
-			case 0: dc.Rectangle(rc); break;
-			case 1: dc.Ellipse(rc); break;
+			case 0: dc.Rectangle(item.box); break;
+			case 1: dc.Ellipse  (item.box); break;
 			case 2: 
-				dc.SetBkColor((COLORREF)(rand() | 0x80'80'80) & 0xff'ff'ff);
+				dc.SetBkColor(item.textbg);
 				dc.SetTextColor(RGB(0, 0, 0));
 				//DRAWTEXTPARAMS params; // Informations de marge
 				dc.DrawTextEx(
-					_T("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"),
-					rc, DT_CENTER|DT_WORDBREAK|DT_WORD_ELLIPSIS/*|DT_CALCRECT*/, NULL //&params
+					item.text, item.box, 
+					DT_CENTER|DT_WORDBREAK|DT_WORD_ELLIPSIS/*|DT_CALCRECT*/, 
+					NULL //&params
 				);
 				// DT_CALCRECT : rc contient le rectangle nécessaire pour l'affichage du texte
 			}
+		}
+		if (m_isel.has_value())
+		{
+			CRect rc = m_items[m_isel.value()].box;
+
+			if (m_startmove.has_value())
+			{
+				rc.OffsetRect(m_curmove.value() - m_startmove.value());
+			}
+			dc.SelectObject(m_selection);
+			dc.SelectStockObject(NULL_BRUSH);
+			dc.Rectangle(rc);
 		}
 	}
 #ifdef DBLBUF
@@ -144,4 +170,65 @@ BOOL CChildView::OnEraseBkgnd(CDC* pDC)
 	// return TRUE;
 	return CWnd::OnEraseBkgnd(pDC);
 #endif
+}
+
+void CChildView::EndMove()
+{
+	ReleaseCapture();
+	m_startmove.reset();
+	m_curmove.reset();
+	Invalidate();
+}
+
+void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	m_isel.reset();
+	for (int i = m_items.size(); i--; )
+	{
+		if (m_items[i].box.PtInRect(point))
+		{
+			m_isel = i;
+			m_startmove = m_curmove = point;
+			SetCapture(); // Prend la main sur les message souris PARTOUT
+			// Invalidate(FALSE); pas d'effacement
+			// InvalidateRect(rectARedessiner);
+			break;
+		}
+	}
+	Invalidate();
+	CWnd::OnLButtonDown(nFlags, point);
+}
+
+
+void CChildView::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (m_startmove.has_value())
+	{
+		m_curmove = point;
+		Invalidate();
+	}
+	CWnd::OnMouseMove(nFlags, point);
+}
+
+
+void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	if (m_startmove.has_value())
+	{
+		m_items[m_isel.value()].box.OffsetRect(
+			m_curmove.value() - m_startmove.value()
+		);
+		EndMove();
+	}
+	CWnd::OnLButtonUp(nFlags, point);
+}
+
+
+void CChildView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	if (nChar == VK_ESCAPE)
+	{
+		EndMove();
+	}
+	CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
