@@ -59,15 +59,37 @@ public:
 	~CGdiRaii() noexcept { m_dc.SelectObject(m_old); }
 };
 
+#define DBLBUF
+
 void CChildView::OnPaint() 
 {
-	CPaintDC dc(this); 
+#ifndef DBLBUF
+	CPaintDC dc(this);
+
+	auto oldpen   = dc.SelectStockObject(BLACK_PEN); // Contour
+	auto oldbrush = dc.SelectStockObject(NULL_BRUSH); // Pas de remplissage
+#else
+	CPaintDC front(this);
+	CDC dc; // DC pour back buffer
+	CRect rc;
+	CBitmap backbuf;
+	
+	GetClientRect(rc); // Récup. taille zone à dessiner
+	dc.CreateCompatibleDC(&front); // Création d'un DC mémoire compatible avec front
+	backbuf.CreateCompatibleBitmap(&front, rc.Width(), rc.Height()); // Création d'une zone mémoire compatible
+	
+	auto oldbmp = dc.SelectObject(&backbuf); // Sélection du backbuf (pour recevoir tous les dessins)
+	auto oldpen = dc.SelectStockObject(NULL_PEN);
+	auto oldbrush = dc.SelectObject(GetSysColorBrush(COLOR_WINDOW));
+
+	dc.Rectangle(rc); // Dessin du fond
+#endif
 	// RAII
 	srand(0); 
 
 	{
-		CGdiRaii oldpen  { dc, dc.SelectStockObject(BLACK_PEN) }; // Contour
-		CGdiRaii oldbrush{ dc, dc.SelectStockObject(NULL_BRUSH) }; // Pas de remplissage
+		dc.SelectStockObject(BLACK_PEN); // Contour
+		dc.SelectStockObject(NULL_BRUSH); // Pas de remplissage
 
 		dc.SetROP2(R2_XORPEN);
 		for (int i = 0; i < 100; ++i)
@@ -98,12 +120,21 @@ void CChildView::OnPaint()
 			}
 		}
 	}
+#ifdef DBLBUF
+	front.BitBlt(0, 0, rc.Width(), rc.Height(), &dc, 0, 0, SRCCOPY);
+	dc.SelectObject(oldbmp);
+#endif
+	dc.SelectObject(oldpen);
+	dc.SelectObject(oldbrush);	
 }
 
 
 
 BOOL CChildView::OnEraseBkgnd(CDC* pDC)
 {
+#ifdef DBLBUF
+	return FALSE;
+#else
 	// Erase typique
 	// CRect rc;
 	// GetClientRect(rc);
@@ -112,4 +143,5 @@ BOOL CChildView::OnEraseBkgnd(CDC* pDC)
 	// Dessélectionner
 	// return TRUE;
 	return CWnd::OnEraseBkgnd(pDC);
+#endif
 }
