@@ -5,6 +5,7 @@
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
 #define m_hh                            100
+#define IDD_FORMVIEW                    101
 #define IDR_POPUP_EDIT                  119
 #define ID_STATUSBAR_PANE1              120
 #define ID_STATUSBAR_PANE2              121
@@ -29,9 +30,10 @@
 #define IDC_EDIT1                       1008
 #define IDC_CONTENU                     1008
 #define IDC_HOTKEY1                     1010
-#define IDC_SPLIT1                      1012
 #define IDC_SPIN1                       1013
 #define IDC_EDIT2                       1014
+#define IDC_BUTTON1                     1015
+#define IDC_BUTTON2                     1016
 #define ID_EDITION_SUPPRIMER            32771
 #define ID_EDITION_CERCLE               32772
 #define ID_EDITION_RECTANGLE            32773
@@ -43,9 +45,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        314
+#define _APS_NEXT_RESOURCE_VALUE        315
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif
