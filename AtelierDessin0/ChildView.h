@@ -17,9 +17,6 @@ class CChildView : public CWnd
 public:
 	CChildView();
 
-// Types
-public:
-	enum class Type { Rectangle, Ellipse, Text };
 // Attributs
 public:
 
@@ -34,9 +31,10 @@ public:
 public:
 	virtual ~CChildView();
 private:
+	enum class Type { Rectangle, Ellipse, Text };
 	struct shape
 	{
-		int type{ 0 };
+		Type type{ 0 };
 		CRect box;
 		CString text;
 		BOOL white{ FALSE };
@@ -60,5 +58,10 @@ public:
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnEditionSupprimer();
 	afx_msg void OnUpdateEditionSupprimer(CCmdUI* pCmdUI);
+	// v1 afx_msg void OnUpdateEditionRectangle(CCmdUI* pCmdUI);
+	// v1 afx_msg void OnEditionRectangle();
+	afx_msg void OnUpdateEditionMode(CCmdUI* pCmdUI);
+	afx_msg void OnEditionMode(UINT nId);
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 };
 

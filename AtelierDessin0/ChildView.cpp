@@ -6,6 +6,7 @@
 #include "framework.h"
 #include "AtelierDessin0.h"
 #include "ChildView.h"
+#include "ShapeDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -25,7 +26,7 @@ CChildView::CChildView() : m_selection(PS_DOT, 1, RGB(0, 0, 0))
 	{
 		shape item;
 
-		item.type = rand() % 3;
+		item.type = static_cast<Type>(rand() % 3);
 		item.white = 0 != (rand() % 2);
 		item.box = CRect(CPoint(RandSize(10, 800)), RandSize(100, 300));
 		item.textbg = (COLORREF)(rand() | 0x80'80'80) & 0xff'ff'ff;
@@ -48,6 +49,11 @@ BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_WM_KEYDOWN()
 	ON_COMMAND(ID_EDITION_SUPPRIMER, &CChildView::OnEditionSupprimer)
 	ON_UPDATE_COMMAND_UI(ID_EDITION_SUPPRIMER, &CChildView::OnUpdateEditionSupprimer)
+	ON_UPDATE_COMMAND_UI(ID_EDITION_RECTANGLE, &CChildView::OnUpdateEditionMode)
+	ON_UPDATE_COMMAND_UI(ID_EDITION_CERCLE	, &CChildView::OnUpdateEditionMode)
+	ON_UPDATE_COMMAND_UI(ID_EDITION_TEXTE	, &CChildView::OnUpdateEditionMode)
+	ON_COMMAND_RANGE(ID_EDITION_RECTANGLE, ID_EDITION_TEXTE, &CChildView::OnEditionMode)
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 
@@ -118,9 +124,9 @@ void CChildView::OnPaint()
 			}
 			switch (item.type)
 			{
-			case 0: dc.Rectangle(item.box); break;
-			case 1: dc.Ellipse  (item.box); break;
-			case 2: 
+			case Type::Rectangle: dc.Rectangle(item.box); break;
+			case Type::Ellipse: dc.Ellipse  (item.box); break;
+			case Type::Text: 
 				dc.SetBkColor(item.textbg);
 				dc.SetTextColor(RGB(0, 0, 0));
 				//DRAWTEXTPARAMS params; // Informations de marge
@@ -243,4 +249,61 @@ void CChildView::OnEditionSupprimer()
 void CChildView::OnUpdateEditionSupprimer(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable(m_isel.has_value());
+}
+
+
+/*
+void CChildView::OnUpdateEditionRectangle(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetRadio(m_mode && m_mode.value()==Type::Rectangle);
+}
+
+
+void CChildView::OnEditionRectangle()
+{
+	m_mode = Type::Rectangle;
+}
+
+*/
+
+void CChildView::OnUpdateEditionMode(CCmdUI* pCmdUI)
+{
+	int indice_mode = pCmdUI->m_nID - ID_EDITION_RECTANGLE;
+	//ASSERT(0 <= indice_mode && indice_mode <= ...);
+	pCmdUI->SetRadio(m_mode && m_mode.value()==static_cast<Type>(indice_mode));
+}
+
+
+void CChildView::OnEditionMode(UINT nID)
+{
+	auto mode = static_cast<Type>(nID - ID_EDITION_RECTANGLE);
+
+	if (m_mode == mode)
+	{
+		m_mode.reset();
+	}
+	else
+	{
+		m_mode = mode;
+	}
+}
+
+
+void CChildView::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	if (m_isel)
+	{
+		CShapeDlg dlg(this);
+		shape& item = m_items[m_isel.value()];
+
+		dlg.m_nType = static_cast<int>(item.type);
+		dlg.m_sContenu = item.text;
+		if (dlg.DoModal() == IDOK)
+		{
+			item.type = static_cast<Type>(dlg.m_nType);
+			item.text = dlg.m_sContenu;
+			Invalidate();
+		}
+	}
+	CWnd::OnLButtonDblClk(nFlags, point);
 }
