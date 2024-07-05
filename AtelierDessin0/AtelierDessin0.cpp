@@ -26,6 +26,9 @@ END_MESSAGE_MAP()
 
 CAtelierDessin0App::CAtelierDessin0App() noexcept
 {
+	AfxEnableMemoryTracking(TRUE);
+	AfxEnableMemoryLeakDump(TRUE);
+
 	m_bHiColorIcons = TRUE;
 
 

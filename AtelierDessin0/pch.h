@@ -9,5 +9,5 @@
 
 // ajouter les en-têtes à précompiler ici
 #include "framework.h"
-
+#define new DEBUG_NEW
 #endif //PCH_H

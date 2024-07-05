@@ -28,6 +28,10 @@
 #define IDC_RADIO5                      1007
 #define IDC_EDIT1                       1008
 #define IDC_CONTENU                     1008
+#define IDC_HOTKEY1                     1010
+#define IDC_SPLIT1                      1012
+#define IDC_SPIN1                       1013
+#define IDC_EDIT2                       1014
 #define ID_EDITION_SUPPRIMER            32771
 #define ID_EDITION_CERCLE               32772
 #define ID_EDITION_RECTANGLE            32773
@@ -41,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        314
 #define _APS_NEXT_COMMAND_VALUE         32789
-#define _APS_NEXT_CONTROL_VALUE         1009
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

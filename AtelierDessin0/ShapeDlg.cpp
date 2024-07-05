@@ -8,6 +8,13 @@
 
 #undef max
 #include <algorithm>
+#include <tuple>
+
+std::tuple<COLORREF, LPCTSTR> colors[] = {
+	{ RGB(255, 0, 0), _T("Rouge") },
+	{ RGB(0, 255, 0), _T("Vert") },
+	{ RGB(0, 0, 255), _T("Bleu") }
+};
 
 
 // boîte de dialogue de CShapeDlg
@@ -41,6 +48,7 @@ BEGIN_MESSAGE_MAP(CShapeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_TEXTE, &CShapeDlg::OnBnClickedTexte)
 	ON_BN_CLICKED(IDC_RECTANGLE, &CShapeDlg::OnBnClickedRectangle)
 	ON_BN_CLICKED(IDC_CERCLE, &CShapeDlg::OnBnClickedRectangle)
+	ON_WM_SIZING()
 END_MESSAGE_MAP()
 
 
@@ -51,8 +59,12 @@ BOOL CShapeDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
+	GetWindowRect(m_rcInit);
 	m_txtContenu.EnableWindow(m_nType == 2);
-	m_lbColor.AddString(_T("Rouge"));
+	for (auto c : colors)
+	{
+		m_lbColor.AddColorEntry(std::get<1>(c), std::get<0>(c));
+	}
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION : les pages de propriétés OCX devraient retourner FALSE
 }
@@ -67,4 +79,28 @@ void CShapeDlg::OnBnClickedTexte()
 void CShapeDlg::OnBnClickedRectangle()
 {
 	m_txtContenu.EnableWindow(FALSE);
+}
+
+
+void CShapeDlg::OnSizing(UINT fwSide, LPRECT pRect)
+{
+	CDialogEx::OnSizing(fwSide, pRect);
+
+	long height = std::max(pRect->bottom - pRect->top, (long)m_rcInit.Height());
+	long width  = std::max(pRect->right - pRect->left, (long)m_rcInit.Width());
+	if (fwSide >= WMSZ_BOTTOM)
+	{
+		fwSide -= WMSZ_BOTTOM;
+		pRect->bottom = pRect->top + height;
+	}
+	else if (fwSide >= WMSZ_TOP)
+	{
+		fwSide -= WMSZ_TOP;
+		pRect->top = pRect->bottom - height;
+	}
+	switch (fwSide)
+	{
+	case WMSZ_RIGHT: pRect->right = pRect->left + width; break;
+	case WMSZ_LEFT: pRect->left = pRect->right - width; break;
+	}
 }

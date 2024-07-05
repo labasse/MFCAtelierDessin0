@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClInclude Include="AtelierDessin0.h" />
     <ClInclude Include="ChildView.h" />
+    <ClInclude Include="ColorListBox.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="pch.h" />
@@ -196,6 +197,7 @@
   <ItemGroup>
     <ClCompile Include="AtelierDessin0.cpp" />
     <ClCompile Include="ChildView.cpp" />
+    <ClCompile Include="ColorListBox.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
