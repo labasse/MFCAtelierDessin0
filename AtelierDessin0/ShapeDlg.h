@@ -29,4 +29,7 @@ private:
 	CEdit m_txtContenu;
 public:
 	CString m_sContenu;
+	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedTexte();
+	afx_msg void OnBnClickedRectangle();
 };

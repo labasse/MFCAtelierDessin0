@@ -6,6 +6,9 @@
 #include "afxdialogex.h"
 #include "ShapeDlg.h"
 
+#undef max
+#include <algorithm>
+
 
 // boîte de dialogue de CShapeDlg
 
@@ -35,7 +38,33 @@ void CShapeDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CShapeDlg, CDialogEx)
+	ON_BN_CLICKED(IDC_TEXTE, &CShapeDlg::OnBnClickedTexte)
+	ON_BN_CLICKED(IDC_RECTANGLE, &CShapeDlg::OnBnClickedRectangle)
+	ON_BN_CLICKED(IDC_CERCLE, &CShapeDlg::OnBnClickedRectangle)
 END_MESSAGE_MAP()
 
 
 // gestionnaires de messages de CShapeDlg
+
+
+BOOL CShapeDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	m_txtContenu.EnableWindow(m_nType == 2);
+	m_lbColor.AddString(_T("Rouge"));
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// EXCEPTION : les pages de propriétés OCX devraient retourner FALSE
+}
+
+
+void CShapeDlg::OnBnClickedTexte()
+{
+	m_txtContenu.EnableWindow(TRUE);
+}
+
+
+void CShapeDlg::OnBnClickedRectangle()
+{
+	m_txtContenu.EnableWindow(FALSE);
+}
