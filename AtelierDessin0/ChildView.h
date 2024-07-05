@@ -17,6 +17,9 @@ class CChildView : public CWnd
 public:
 	CChildView();
 
+// Types
+public:
+	enum class Type { Rectangle, Ellipse, Text };
 // Attributs
 public:
 
@@ -39,6 +42,7 @@ private:
 		BOOL white{ FALSE };
 		COLORREF textbg{ RGB(0, 0, 0) };
 	};
+	std::optional<Type> m_mode;
 	std::vector<shape> m_items;
 	CPen m_selection;
 	std::optional<int> m_isel;
@@ -54,5 +58,7 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnEditionSupprimer();
+	afx_msg void OnUpdateEditionSupprimer(CCmdUI* pCmdUI);
 };
 

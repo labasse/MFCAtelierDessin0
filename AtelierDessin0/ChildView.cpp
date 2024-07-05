@@ -46,6 +46,8 @@ BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
 	ON_WM_KEYDOWN()
+	ON_COMMAND(ID_EDITION_SUPPRIMER, &CChildView::OnEditionSupprimer)
+	ON_UPDATE_COMMAND_UI(ID_EDITION_SUPPRIMER, &CChildView::OnUpdateEditionSupprimer)
 END_MESSAGE_MAP()
 
 
@@ -80,9 +82,6 @@ void CChildView::OnPaint()
 {
 #ifndef DBLBUF
 	CPaintDC dc(this);
-
-	auto oldpen   = dc.SelectStockObject(BLACK_PEN); // Contour
-	auto oldbrush = dc.SelectStockObject(NULL_BRUSH); // Pas de remplissage
 #else
 	CPaintDC front(this);
 	CDC dc; // DC pour back buffer
@@ -94,15 +93,15 @@ void CChildView::OnPaint()
 	backbuf.CreateCompatibleBitmap(&front, rc.Width(), rc.Height()); // Création d'une zone mémoire compatible
 	
 	auto oldbmp = dc.SelectObject(&backbuf); // Sélection du backbuf (pour recevoir tous les dessins)
-	auto oldpen = dc.SelectStockObject(NULL_PEN);
-	auto oldbrush = dc.SelectObject(GetSysColorBrush(COLOR_WINDOW));
-
-	dc.Rectangle(rc); // Dessin du fond
+	
+	dc.FillSolidRect(rc, GetSysColor(COLOR_WINDOW)); // Dessin du fond
 #endif
 	// RAII
 	srand(0); 
 
 	{
+		CGdiRaii oldpen (dc, dc.SelectStockObject(BLACK_PEN)); // Contour
+		CGdiRaii oldbrush (dc, dc.SelectStockObject(NULL_BRUSH)); // Pas de remplissage
 		dc.SelectStockObject(BLACK_PEN); // Contour
 		dc.SelectStockObject(NULL_BRUSH); // Pas de remplissage
 
@@ -133,11 +132,11 @@ void CChildView::OnPaint()
 				// DT_CALCRECT : rc contient le rectangle nécessaire pour l'affichage du texte
 			}
 		}
-		if (m_isel.has_value())
+		if (m_isel)
 		{
 			CRect rc = m_items[m_isel.value()].box;
 
-			if (m_startmove.has_value())
+			if (m_startmove)
 			{
 				rc.OffsetRect(m_curmove.value() - m_startmove.value());
 			}
@@ -150,8 +149,6 @@ void CChildView::OnPaint()
 	front.BitBlt(0, 0, rc.Width(), rc.Height(), &dc, 0, 0, SRCCOPY);
 	dc.SelectObject(oldbmp);
 #endif
-	dc.SelectObject(oldpen);
-	dc.SelectObject(oldbrush);	
 }
 
 
@@ -202,7 +199,7 @@ void CChildView::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if (m_startmove.has_value())
+	if (m_startmove)
 	{
 		m_curmove = point;
 		Invalidate();
@@ -213,7 +210,7 @@ void CChildView::OnMouseMove(UINT nFlags, CPoint point)
 
 void CChildView::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	if (m_startmove.has_value())
+	if (m_startmove)
 	{
 		m_items[m_isel.value()].box.OffsetRect(
 			m_curmove.value() - m_startmove.value()
@@ -231,4 +228,19 @@ void CChildView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		EndMove();
 	}
 	CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+
+void CChildView::OnEditionSupprimer()
+{
+	ASSERT(m_isel);
+	m_items.erase(m_items.begin() + m_isel.value());
+	m_isel.reset();
+	Invalidate();
+}
+
+
+void CChildView::OnUpdateEditionSupprimer(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(m_isel.has_value());
 }
